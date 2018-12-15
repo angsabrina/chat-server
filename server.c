@@ -2,7 +2,7 @@
 #include <sys/socket.h> //For Sockets
 #include <stdlib.h>
 #include <netinet/in.h> //For the AF_INET (Address Family)
-
+#include <errno.h>
 /*
 I am going to establish a connection for client and server through a socket
 Socket is one end of an interprocess communication channel
@@ -20,6 +20,48 @@ int fd; //socket file descriptor, used to identify socket
 int conn; //connection file descriptor, used to identify client connections
 char message[100] = ""; //array store msgs sent by server
 
-//
-int main(int argc, char *argv[]) {
+//hardcoded port
+int main() {
 	serv.sin_family = AF_INET;
+	serv.sin_port = htons(8096); //converts unsign short to network byte order, literally "host to network short"
+	serv.sin_addr.s_addr = INADDR_ANY; //binds the socket to all available interfaces
+	//server.sin_addr.s_addr = inet_addr("127.0.0.1") binds to localhost only
+
+	fd = socket(AF_INET, SOCK_STREAM, 0); //creates new socket and returns identifier of socket into fd
+	if(fd < 0) {
+		error("ERROR opening socket");
+	}
+
+	bind(fd, (struct sockaddr *)&serv, sizeof(serv)); //assigns addr specified by serv to socket
+	listen(fd, 5); //listen for client connections, max 5 allow
+
+	while(conn = accept(fd, (struct sockaddr *)NULL, NULL)) {
+		int pid;
+		if((pid = fork()) == 0) {
+			while(recv(conn, message, 100, 0) > 0) {
+				printf("Message received: %s\n", message);
+				//extra breaking condition to terminate child process
+				//message = "";
+			}
+			exit(0);
+		}
+	}
+	return 0;
+}
+
+
+//choose your own port
+// int main(int argc, char *argv[]) {
+// 	if(argc < 2) {
+// 		fprintf(stderr, "ERROR, no port provided\n");
+// 		exit(1);
+// 	}
+
+// 	fd = socket(AF_INET, SOCK_STREAM, 0);
+// 	if (sockfd < 0) {
+// 		error("ERROR opening socket");
+// 	}
+
+// 	serv.sin_family = AF_INET;
+
+
