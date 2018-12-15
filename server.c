@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <netinet/in.h> //For the AF_INET (Address Family)
 #include <errno.h>
+#include <string.h>
+
 /*
 I am going to establish a connection for client and server through a socket
 Socket is one end of an interprocess communication channel
@@ -41,7 +43,7 @@ int main() {
 			while(recv(conn, message, 100, 0) > 0) {
 				printf("Message received: %s\n", message);
 				//extra breaking condition to terminate child process
-				//message = "";
+				memset(message, 0, sizeof(message));
 			}
 			exit(0);
 		}
